@@ -9,9 +9,11 @@ package gfile_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/test/gtest"
 )
 
 func ExampleCopy() {
@@ -49,8 +51,14 @@ func ExampleCopy() {
 
 	// copy with context cancel
 	ctx, copyCancel := context.WithCancel(context.Background())
-	srcFile, _ := gfile.Open(srcTempDir)
-	dstFile, _ := gfile.Open(dstTempDir)
+	srcFile, err := gfile.Open(gtest.DataPath("dir1\\file1"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dstFile, err := gfile.Create(gtest.DataPath("dir1\\file2"))
+	if err != nil {
+		log.Fatalln(err)
+	}
 	go func() {
 		time.Sleep(1 * time.Millisecond)
 		copyCancel()
