@@ -7,6 +7,7 @@
 package gfile
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -251,4 +252,22 @@ func getCopyOption(option ...CopyOption) CopyOption {
 		usedOption.Mode = DefaultPermCopy
 	}
 	return usedOption
+}
+
+type readerFunc func(p []byte) (n int, err error)
+
+func (rf readerFunc) Read(p []byte) (n int, err error) { return rf(p) }
+
+// CtxCopy rewrite io.Copy with context
+// Principle: Using io.Copy, it buf default size is 32*1024 bytes. If the current segment is copied, it will not be continued.
+func CtxCopy(ctx context.Context, dst io.Writer, src io.Reader) error {
+	_, err := io.Copy(dst, readerFunc(func(p []byte) (int, error) {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+			return src.Read(p)
+		}
+	}))
+	return err
 }
