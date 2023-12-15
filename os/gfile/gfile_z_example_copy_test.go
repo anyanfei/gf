@@ -7,7 +7,9 @@
 package gfile_test
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/gogf/gf/v2/os/gfile"
 )
@@ -44,6 +46,16 @@ func ExampleCopy() {
 	for _, v := range fList {
 		fmt.Println(gfile.Basename(v))
 	}
+
+	// copy with context cancel
+	ctx, copyCancel := context.WithCancel(context.Background())
+	srcFile, _ := gfile.Open(srcTempDir)
+	dstFile, _ := gfile.Open(dstTempDir)
+	go func() {
+		time.Sleep(1 * time.Millisecond)
+		copyCancel()
+	}()
+	gfile.CtxCopy(ctx, dstFile, srcFile)
 
 	// Output:
 	// goframe example copy
